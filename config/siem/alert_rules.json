@@ -1,0 +1,107 @@
+{
+  "siem": {
+    "name": "3FA Security Monitoring",
+    "version": "1.0",
+    "description": "Règles d'alerte pour l'application Triple Auth"
+  },
+  "alert_rules": [
+    {
+      "id": "RULE-001",
+      "name": "Brute Force détecté",
+      "description": "3 échecs de connexion ou plus en moins de 5 minutes pour le même utilisateur",
+      "severity": "CRITICAL",
+      "query": "SELECT user_id, COUNT(*) as attempts, MIN(date) as first_attempt, MAX(date) as last_attempt FROM audit_logs WHERE action = 'LOGIN_FAIL' AND date >= NOW() - INTERVAL 5 MINUTE GROUP BY user_id HAVING attempts >= 3",
+      "action": "Bloquer le compte, notifier l'administrateur",
+      "threshold": 3,
+      "window_minutes": 5
+    },
+    {
+      "id": "RULE-002",
+      "name": "Connexion depuis nouvelle IP",
+      "description": "Un utilisateur se connecte depuis une adresse IP jamais vue",
+      "severity": "WARNING",
+      "query": "SELECT l.user_id, l.ip, l.date FROM logs l WHERE l.status = 'success' AND NOT EXISTS (SELECT 1 FROM logs l2 WHERE l2.user_id = l.user_id AND l2.ip = l.ip AND l2.date < l.date)",
+      "action": "Forcer validation OTP supplémentaire",
+      "threshold": 1,
+      "window_minutes": null
+    },
+    {
+      "id": "RULE-003",
+      "name": "Compte bloqué",
+      "description": "Un compte utilisateur vient d'être bloqué automatiquement",
+      "severity": "CRITICAL",
+      "query": "SELECT user_id, action, detail, ip, date FROM audit_logs WHERE action = 'ACCOUNT_BLOCKED' AND date >= NOW() - INTERVAL 1 MINUTE",
+      "action": "Envoyer alerte email à l'administrateur",
+      "threshold": 1,
+      "window_minutes": 1
+    },
+    {
+      "id": "RULE-004",
+      "name": "Accès non autorisé",
+      "description": "Tentative d'accès à une ressource protégée sans authentification",
+      "severity": "WARNING",
+      "query": "SELECT user_id, action, detail, ip, date FROM audit_logs WHERE action = 'UNAUTHORIZED_ACCESS' AND date >= NOW() - INTERVAL 10 MINUTE",
+      "action": "Logger et surveiller l'IP source",
+      "threshold": 1,
+      "window_minutes": 10
+    },
+    {
+      "id": "RULE-005",
+      "name": "Volume d'uploads anormal",
+      "description": "Plus de 10 fichiers uploadés en moins de 10 minutes",
+      "severity": "WARNING",
+      "query": "SELECT user_id, COUNT(*) as uploads FROM audit_logs WHERE action = 'FILE_UPLOAD' AND date >= NOW() - INTERVAL 10 MINUTE GROUP BY user_id HAVING uploads > 10",
+      "action": "Vérifier l'activité de l'utilisateur",
+      "threshold": 10,
+      "window_minutes": 10
+    },
+    {
+      "id": "RULE-006",
+      "name": "Échec OTP répété",
+      "description": "3 codes OTP incorrects consécutifs",
+      "severity": "HIGH",
+      "query": "SELECT user_id, COUNT(*) as fails FROM audit_logs WHERE action = 'OTP_FAIL' AND date >= NOW() - INTERVAL 15 MINUTE GROUP BY user_id HAVING fails >= 3",
+      "action": "Invalider l'OTP en cours et demander reconnexion",
+      "threshold": 3,
+      "window_minutes": 15
+    }
+  ],
+  "dashboard_widgets": [
+    {
+      "id": "W-01",
+      "title": "Connexions réussies (24h)",
+      "type": "counter",
+      "query": "SELECT COUNT(*) FROM logs WHERE status = 'success' AND date >= NOW() - INTERVAL 24 HOUR"
+    },
+    {
+      "id": "W-02",
+      "title": "Échecs de connexion (24h)",
+      "type": "counter",
+      "query": "SELECT COUNT(*) FROM logs WHERE status = 'fail' AND date >= NOW() - INTERVAL 24 HOUR"
+    },
+    {
+      "id": "W-03",
+      "title": "Comptes bloqués actifs",
+      "type": "counter",
+      "query": "SELECT COUNT(*) FROM users WHERE blocked = 1"
+    },
+    {
+      "id": "W-04",
+      "title": "IP distinctes (7 jours)",
+      "type": "counter",
+      "query": "SELECT COUNT(DISTINCT ip) FROM logs WHERE date >= NOW() - INTERVAL 7 DAY"
+    },
+    {
+      "id": "W-05",
+      "title": "Timeline des événements de sécurité",
+      "type": "timeseries",
+      "query": "SELECT DATE_FORMAT(date, '%Y-%m-%d %H:00') as hour, action, COUNT(*) as count FROM audit_logs WHERE date >= NOW() - INTERVAL 24 HOUR GROUP BY hour, action ORDER BY hour"
+    },
+    {
+      "id": "W-06",
+      "title": "Top 10 IP suspectes",
+      "type": "table",
+      "query": "SELECT ip, COUNT(*) as attempts FROM logs WHERE status = 'fail' AND date >= NOW() - INTERVAL 24 HOUR GROUP BY ip ORDER BY attempts DESC LIMIT 10"
+    }
+  ]
+}

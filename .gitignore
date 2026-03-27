@@ -11,6 +11,10 @@ uploads/*
 # Paramètres locaux Claude
 .claude/settings.local.json
 
+# Rapports générés
+coverage/
+.phpunit.result.cache
+
 # Fichiers système
 .DS_Store
 Thumbs.db

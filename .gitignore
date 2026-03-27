@@ -1,0 +1,16 @@
+# Credentials sensibles
+config/credentials.php
+
+# Dossier vendor (géré par Composer)
+vendor/
+
+# Fichiers uploadés par les utilisateurs
+uploads/*
+!uploads/.htaccess
+
+# Paramètres locaux Claude
+.claude/settings.local.json
+
+# Fichiers système
+.DS_Store
+Thumbs.db

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapport de Projet – Triple Auth</title>
+<style>
+  /* ── Polices & reset ── */
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── Variables ── */
+  :root {
+    --purple:    #7c3aed;
+    --purple-lt: #ede9fe;
+    --dark:      #1e1b4b;
+    --mid:       #4338ca;
+    --text:      #1f2937;
+    --muted:     #6b7280;
+    --border:    #e5e7eb;
+    --bg-alt:    #f9fafb;
+    --bg-code:   #f3f4f6;
+    --green:     #059669;
+    --red:       #dc2626;
+    --orange:    #d97706;
+    --blue:      #2563eb;
+  }
+
+  /* ── Mise en page ── */
+  html { font-size: 14px; }
+  body {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text);
+    background: #fff;
+    line-height: 1.65;
+    padding: 0;
+  }
+
+  .page-wrapper { max-width: 860px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+  /* ── Couverture ── */
+  .cover {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--mid) 60%, var(--purple) 100%);
+    color: #fff;
+    padding: 3.5rem 3rem 3rem;
+    border-radius: 16px;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .cover::after {
+    content: '';
+    position: absolute; bottom: -40px; left: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .cover-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem; }
+  .cover h1 span { color: #c4b5fd; }
+  .cover-sub { font-size: 1rem; opacity: 0.8; margin-bottom: 2rem; }
+  .cover-meta { display: flex; gap: 2rem; flex-wrap: wrap; }
+  .cover-meta div { font-size: 0.78rem; opacity: 0.75; }
+  .cover-meta strong { display: block; font-size: 0.85rem; opacity: 1; color: #e0e7ff; margin-bottom: 2px; }
+
+  /* ── Table des matières ── */
+  .toc {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+  }
+  .toc h2 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 1rem; }
+  .toc ol { padding-left: 1.2rem; }
+  .toc li { padding: 3px 0; font-size: 0.88rem; color: var(--purple); font-weight: 600; }
+  .toc li::marker { color: var(--muted); }
+
+  /* ── Sections ── */
+  section { margin-bottom: 2.5rem; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--purple-lt);
+  }
+  .section-num {
+    background: var(--purple);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8rem;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--dark); }
+
+  /* ── Tableaux ── */
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.84rem; }
+  thead tr { background: var(--dark); color: #fff; }
+  thead th { padding: 9px 12px; text-align: left; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.04em; }
+  tbody tr:nth-child(even) { background: var(--bg-alt); }
+  tbody tr:hover { background: var(--purple-lt); }
+  td { padding: 7px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  td:first-child { font-weight: 600; color: var(--dark); white-space: nowrap; }
+  td code, th code { font-family: 'Source Code Pro', monospace; font-size: 0.8rem; background: var(--bg-code); padding: 1px 5px; border-radius: 3px; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .badge-purple { background: var(--purple-lt); color: var(--purple); }
+  .badge-green  { background: #d1fae5; color: var(--green); }
+  .badge-red    { background: #fee2e2; color: var(--red); }
+  .badge-blue   { background: #dbeafe; color: var(--blue); }
+  .badge-orange { background: #fef3c7; color: var(--orange); }
+
+  /* ── Blocs info ── */
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin: 1rem 0; }
+  .info-card {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .info-card .value { font-size: 1.9rem; font-weight: 800; color: var(--purple); line-height: 1; }
+  .info-card .label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── Flux d'authentification ── */
+  .auth-flow { margin: 1rem 0; }
+  .auth-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+  }
+  .auth-step-num {
+    background: var(--purple);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.85rem;
+    min-width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .auth-step-body { flex: 1; }
+  .auth-step-title { font-weight: 700; font-size: 0.92rem; color: var(--dark); }
+  .auth-step-desc { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+  .auth-arrow {
+    width: 2px; height: 18px;
+    background: var(--purple-lt);
+    margin: 0 0 0 15px;
+  }
+  .auth-success {
+    background: linear-gradient(90deg, #d1fae5, #a7f3d0);
+    border: 1px solid #6ee7b7;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    margin-top: 0.6rem;
+    font-weight: 700;
+    color: var(--green);
+    font-size: 0.9rem;
+  }
+
+  /* ── Bloc code (pre) ── */
+  pre {
+    background: var(--dark);
+    color: #e0e7ff;
+    padding: 1.2rem 1.4rem;
+    border-radius: 10px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  /* ── Sécurité – grille ── */
+  .security-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
+  .security-item {
+    background: var(--bg-alt);
+    border-left: 3px solid var(--purple);
+    padding: 0.8rem 1rem;
+    border-radius: 0 8px 8px 0;
+  }
+  .security-item .title { font-weight: 700; font-size: 0.85rem; color: var(--dark); }
+  .security-item .desc { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Pied de page ── */
+  .footer {
+    margin-top: 3rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── IMPRESSION ── */
+  @media print {
+    html { font-size: 11px; }
+    body { background: #fff; }
+    .page-wrapper { max-width: 100%; padding: 0; }
+    .cover { border-radius: 0; margin-bottom: 1.5rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    section { page-break-inside: avoid; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    pre { page-break-inside: avoid; white-space: pre-wrap; }
+    .security-grid { grid-template-columns: 1fr 1fr; }
+    .info-grid { grid-template-columns: repeat(4, 1fr); }
+    a { color: inherit; text-decoration: none; }
+    thead tr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tbody tr:nth-child(even) { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section-num { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .security-item { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- Bouton impression -->
+  <div class="no-print" style="text-align:right;margin-bottom:1rem;">
+    <button onclick="window.print()" style="background:#7c3aed;color:#fff;border:none;padding:10px 22px;border-radius:8px;font-weight:700;font-size:0.9rem;cursor:pointer;font-family:inherit;">
+      ⬇ Exporter en PDF (Ctrl+P)
+    </button>
+  </div>
+
+  <!-- ── Couverture ── -->
+  <div class="cover">
+    <div class="cover-badge">Rapport de Projet</div>
+    <h1>Triple <span>Auth</span></h1>
+    <div class="cover-sub">SecureHealth – Gestion de documents médicaux sécurisée</div>
+    <div class="cover-meta">
+      <div><strong>Technologie</strong>PHP 8.2 · MySQL · WebAuthn</div>
+      <div><strong>Authentification</strong>3 facteurs (3FA)</div>
+      <div><strong>Environnement</strong>XAMPP · Apache</div>
+      <div><strong>Date</strong>Mars 2026</div>
+    </div>
+  </div>
+
+  <!-- ── Table des matières ── -->
+  <div class="toc">
+    <h2>Table des matières</h2>
+    <ol>
+      <li>Présentation générale</li>
+      <li>Métriques du projet</li>
+      <li>Architecture des fichiers</li>
+      <li>Base de données</li>
+      <li>Flux d'authentification (3FA)</li>
+      <li>Fonctionnalités</li>
+      <li>Sécurité</li>
+      <li>Endpoints</li>
+      <li>Points notables</li>
+    </ol>
+  </div>
+
+  <!-- ── 1. Présentation ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Présentation générale</h2>
+    </div>
+    <table>
+      <thead><tr><th>Attribut</th><th>Valeur</th></tr></thead>
+      <tbody>
+        <tr><td>Nom du projet</td><td>Triple Auth – SecureHealth</td></tr>
+        <tr><td>Objectif</td><td>Gestion sécurisée de documents médicaux avec authentification à 3 facteurs</td></tr>
+        <tr><td>Langage backend</td><td>PHP 8.2</td></tr>
+        <tr><td>Base de données</td><td>MySQL (InnoDB, utf8mb4)</td></tr>
+        <tr><td>Serveur web</td><td>Apache (XAMPP)</td></tr>
+        <tr><td>Dépendances</td><td>PHPMailer 7.0+, WebAuthn (implémentation native)</td></tr>
+        <tr><td>Frontend</td><td>HTML5 · CSS3 · Vanilla JavaScript · FontAwesome</td></tr>
+        <tr><td>Thème visuel</td><td>Dark mode – violet / bleu foncé</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 2. Métriques ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Métriques du projet</h2>
+    </div>
+    <div class="info-grid">
+      <div class="info-card"><div class="value">21</div><div class="label">Fichiers PHP</div></div>
+      <div class="info-card"><div class="value">8</div><div class="label">Tables BDD</div></div>
+      <div class="info-card"><div class="value">3</div><div class="label">Facteurs d'auth</div></div>
+      <div class="info-card"><div class="value">5 Mo</div><div class="label">Taille max upload</div></div>
+      <div class="info-card"><div class="value">30 min</div><div class="label">Timeout session</div></div>
+      <div class="info-card"><div class="value">90 s</div><div class="label">Expiration OTP</div></div>
+      <div class="info-card"><div class="value">3</div><div class="label">Tentatives max</div></div>
+      <div class="info-card"><div class="value">7 jours</div><div class="label">Partage max</div></div>
+    </div>
+  </section>
+
+  <!-- ── 3. Architecture ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Architecture des fichiers</h2>
+    </div>
+
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;"><strong style="color:var(--dark);">Authentification</strong></p>
+    <table>
+      <thead><tr><th>Fichier</th><th>Rôle</th><th>Facteur</th></tr></thead>
+      <tbody>
+        <tr><td><code>login.php</code></td><td>Email + mot de passe · blocage après 3 échecs</td><td><span class="badge badge-purple">F1</span></td></tr>
+        <tr><td><code>register.php</code></td><td>Inscription complète (email, password, PIN, questions)</td><td>—</td></tr>
+        <tr><td><code>questionnaire.php</code></td><td>3 questions secrètes (réponses hachées bcrypt)</td><td><span class="badge badge-blue">F2a</span></td></tr>
+        <tr><td><code>otp.php</code></td><td>Code OTP 6 chiffres par email (90s, max 3 renvois)</td><td><span class="badge badge-blue">F2b</span></td></tr>
+        <tr><td><code>verify_pin.php</code></td><td>PIN 4 chiffres + fallback WebAuthn biométrique</td><td><span class="badge badge-green">F3</span></td></tr>
+        <tr><td><code>webauthn_register.php</code></td><td>Enrôlement Windows Hello / Touch ID / FIDO2</td><td><span class="badge badge-green">F3</span></td></tr>
+        <tr><td><code>webauthn_auth.php</code></td><td>Vérification biométrique WebAuthn</td><td><span class="badge badge-green">F3</span></td></tr>
+        <tr><td><code>forgot_password.php</code></td><td>Demande de réinitialisation par email</td><td>—</td></tr>
+        <tr><td><code>reset_password.php</code></td><td>Nouveau mot de passe via token (1h)</td><td>—</td></tr>
+        <tr><td><code>logout.php</code></td><td>Destruction complète de la session</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:0.85rem;color:var(--muted);margin:1rem 0 0.8rem;"><strong style="color:var(--dark);">Application principale</strong></p>
+    <table>
+      <thead><tr><th>Fichier</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><code>dashboard.php</code></td><td>Interface principale – liste de fichiers, profil, audit log</td></tr>
+        <tr><td><code>upload.php</code></td><td>Téléversement avec sélection de catégorie</td></tr>
+        <tr><td><code>serve_file.php</code></td><td>Diffusion sécurisée des fichiers (authentification obligatoire)</td></tr>
+        <tr><td><code>share_file.php</code></td><td>Génération de liens de partage temporaires</td></tr>
+        <tr><td><code>shared.php</code></td><td>Accès public par token (sans authentification)</td></tr>
+        <tr><td><code>serve_profile.php</code></td><td>Photo de profil servie via PHP</td></tr>
+        <tr><td><code>phishing_demo.php</code></td><td>Démonstration pédagogique du phishing</td></tr>
+        <tr><td><code>migrate.php</code></td><td>Utilitaire de migration du schéma</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:0.85rem;color:var(--muted);margin:1rem 0 0.8rem;"><strong style="color:var(--dark);">Configuration</strong> (<code>config/</code>)</p>
+    <table>
+      <thead><tr><th>Fichier</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><code>db.php</code></td><td>Connexion PDO MySQL</td></tr>
+        <tr><td><code>auth_check.php</code></td><td>Vérification session + timeout 30 min</td></tr>
+        <tr><td><code>helpers.php</code></td><td>Logs d'audit, gestion des catégories, couleurs</td></tr>
+        <tr><td><code>webauthn.php</code></td><td>Décodeur CBOR, parser COSE, vérification ES256/RS256</td></tr>
+        <tr><td><code>mailer.php</code></td><td>PHPMailer SMTP Gmail (OTP + reset)</td></tr>
+        <tr><td><code>create_tables.sql</code></td><td>Schéma complet de la base de données</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 4. Base de données ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Base de données</h2>
+    </div>
+    <table>
+      <thead><tr><th>Table</th><th>Description</th><th>Colonnes clés</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>Comptes utilisateurs</td><td>id, email (UNIQUE), password, pin, secret_q×3, attempts, blocked, blocked_until</td></tr>
+        <tr><td><code>otp_codes</code></td><td>Codes OTP temporaires</td><td>user_id (PK), code, expiration (90s), attempts</td></tr>
+        <tr><td><code>webauthn_credentials</code></td><td>Clés publiques biométriques</td><td>user_id, credential_id, public_key (PEM), algo (-7 ES256 / -257 RS256), sign_count</td></tr>
+        <tr><td><code>files</code></td><td>Métadonnées des documents</td><td>id, user_id, file_path, display_name, category, upload_date</td></tr>
+        <tr><td><code>logs</code></td><td>Historique des connexions</td><td>user_id, ip, date, status</td></tr>
+        <tr><td><code>audit_logs</code></td><td>Journal d'audit (15+ actions)</td><td>user_id, action, detail, ip, date</td></tr>
+        <tr><td><code>password_resets</code></td><td>Tokens de réinitialisation</td><td>user_id, token (64 hex), expires_at (1h), used</td></tr>
+        <tr><td><code>shared_links</code></td><td>Liens de partage temporaires</td><td>file_id, user_id, token (64 hex), expires_at (1h–7j)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 5. Flux authentification ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Flux d'authentification (3FA)</h2>
+    </div>
+    <div class="auth-flow">
+      <div class="auth-step">
+        <div class="auth-step-num">1</div>
+        <div class="auth-step-body">
+          <div class="auth-step-title">Facteur 1 – Connaissance &nbsp;<span class="badge badge-purple">login.php</span></div>
+          <div class="auth-step-desc">Email + mot de passe (6–128 caractères) · Blocage 30 min après 3 échecs · Détection de nouvelle IP</div>
+        </div>
+      </div>
+      <div class="auth-arrow"></div>
+      <div class="auth-step">
+        <div class="auth-step-num">2a</div>
+        <div class="auth-step-body">
+          <div class="auth-step-title">Facteur 2a – Questions secrètes &nbsp;<span class="badge badge-blue">questionnaire.php</span></div>
+          <div class="auth-step-desc">3 réponses comparées par hash bcrypt · Insensible à la casse · Toutes obligatoires</div>
+        </div>
+      </div>
+      <div class="auth-arrow"></div>
+      <div class="auth-step">
+        <div class="auth-step-num">2b</div>
+        <div class="auth-step-body">
+          <div class="auth-step-title">Facteur 2b – OTP Email &nbsp;<span class="badge badge-blue">otp.php</span></div>
+          <div class="auth-step-desc">Code 6 chiffres via random_int() · Envoyé par Gmail SMTP · Expire en 90 s · Max 3 tentatives / 3 renvois</div>
+        </div>
+      </div>
+      <div class="auth-arrow"></div>
+      <div class="auth-step">
+        <div class="auth-step-num">3</div>
+        <div class="auth-step-body">
+          <div class="auth-step-title">Facteur 3 – PIN + Biométrie &nbsp;<span class="badge badge-green">verify_pin.php</span></div>
+          <div class="auth-step-desc">PIN 4 chiffres (bcrypt) · Fallback WebAuthn : Windows Hello, Touch ID, FIDO2 · Algorithmes ES256 / RS256</div>
+        </div>
+      </div>
+      <div class="auth-success">✓ Authentification complète → dashboard.php</div>
+    </div>
+    <p style="font-size:0.8rem;color:var(--muted);margin-top:0.8rem;">
+      Les flags de session <code>user_id</code> → <code>otp_validated</code> → <code>pin_validated</code> empêchent tout saut d'étape.
+    </p>
+  </section>
+
+  <!-- ── 6. Fonctionnalités ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Fonctionnalités</h2>
+    </div>
+    <table>
+      <thead><tr><th>Domaine</th><th>Fonctionnalité</th><th>Détail</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="6">Documents</td><td>Upload</td><td>PDF, JPG, PNG · Max 5 Mo · Validation MIME via <code>finfo</code></td></tr>
+        <tr><td>Catégories</td><td>Ordonnances, Radiologie, Analyses, Vaccins, Comptes-rendus, Autre</td></tr>
+        <tr><td>Renommage</td><td>Inline, max 80 caractères</td></tr>
+        <tr><td>Suppression</td><td>Individuelle ou en masse</td></tr>
+        <tr><td>Export</td><td>Archive ZIP de tous les documents</td></tr>
+        <tr><td>Partage</td><td>Lien temporaire public (1h à 7 jours), accès sans authentification</td></tr>
+        <tr><td rowspan="3">Profil</td><td>Photo</td><td>JPG/PNG · Max 2 Mo · Servie via PHP (accès direct bloqué)</td></tr>
+        <tr><td>Historique</td><td>Connexions (IP, date, statut succès/échec)</td></tr>
+        <tr><td>Audit</td><td>15+ types d'actions enregistrées</td></tr>
+        <tr><td rowspan="3">Session</td><td>Timeout</td><td>30 min d'inactivité · Timer visible avec alerte à 5 min restantes</td></tr>
+        <tr><td>CSRF</td><td>Token 32 octets sur tous les formulaires POST</td></tr>
+        <tr><td>IP</td><td>Alerte nouvelle IP détectée</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 7. Sécurité ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Sécurité implémentée</h2>
+    </div>
+    <div class="security-grid">
+      <div class="security-item">
+        <div class="title">Hachage bcrypt</div>
+        <div class="desc">Mot de passe, PIN et réponses aux questions secrètes – jamais stockés en clair</div>
+      </div>
+      <div class="security-item">
+        <div class="title">Requêtes préparées PDO</div>
+        <div class="desc">Toutes les requêtes SQL utilisent des paramètres liés – aucune concaténation</div>
+      </div>
+      <div class="security-item">
+        <div class="title">Protection XSS</div>
+        <div class="desc"><code>htmlspecialchars()</code> sur toutes les sorties utilisateur</div>
+      </div>
+      <div class="security-item">
+        <div class="title">Tokens haute entropie</div>
+        <div class="desc">256 bits (64 octets hex) pour les tokens de reset et de partage</div>
+      </div>
+      <div class="security-item">
+        <div class="title">Fichiers protégés</div>
+        <div class="desc"><code>.htaccess</code> bloque l'accès direct à <code>uploads/</code> et <code>config/</code></div>
+      </div>
+      <div class="security-item">
+        <div class="title">Noms randomisés</div>
+        <div class="desc">Fichiers renommés avec <code>uniqid()</code> à l'upload – pas de devinette possible</div>
+      </div>
+      <div class="security-item">
+        <div class="title">En-têtes HTTP sécurisés</div>
+        <div class="desc">X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy</div>
+      </div>
+      <div class="security-item">
+        <div class="title">Anti-replay WebAuthn</div>
+        <div class="desc"><code>signCount</code> incrémental vérifié – prévient la réutilisation de credentials volés</div>
+      </div>
+      <div class="security-item">
+        <div class="title">Validation MIME</div>
+        <div class="desc">Type de fichier vérifié par <code>finfo</code> (contenu binaire, pas l'extension)</div>
+      </div>
+      <div class="security-item">
+        <div class="title">Blocage de compte</div>
+        <div class="desc">Après 3 tentatives échouées – déblocage automatique après 30 minutes</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 8. Endpoints ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Endpoints &amp; routes</h2>
+    </div>
+    <table>
+      <thead><tr><th>Endpoint</th><th>Méthode</th><th>Auth requise</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><code>/index.php</code></td><td>GET</td><td><span class="badge badge-green">Non</span></td><td>Page d'accueil</td></tr>
+        <tr><td><code>/register.php</code></td><td>GET/POST</td><td><span class="badge badge-green">Non</span></td><td>Création de compte</td></tr>
+        <tr><td><code>/login.php</code></td><td>GET/POST</td><td><span class="badge badge-green">Non</span></td><td>Connexion – Facteur 1</td></tr>
+        <tr><td><code>/questionnaire.php</code></td><td>GET/POST</td><td><span class="badge badge-blue">Phase 1</span></td><td>Questions secrètes – Facteur 2a</td></tr>
+        <tr><td><code>/otp.php</code></td><td>GET/POST</td><td><span class="badge badge-blue">Phase 2a</span></td><td>OTP email – Facteur 2b</td></tr>
+        <tr><td><code>/verify_pin.php</code></td><td>GET/POST</td><td><span class="badge badge-blue">Phase 2b</span></td><td>PIN/WebAuthn – Facteur 3</td></tr>
+        <tr><td><code>/dashboard.php</code></td><td>GET/POST</td><td><span class="badge badge-red">3FA complet</span></td><td>Interface principale</td></tr>
+        <tr><td><code>/upload.php</code></td><td>GET/POST</td><td><span class="badge badge-red">3FA complet</span></td><td>Téléversement de documents</td></tr>
+        <tr><td><code>/serve_file.php?id=N</code></td><td>GET</td><td><span class="badge badge-red">3FA complet</span></td><td>Téléchargement sécurisé</td></tr>
+        <tr><td><code>/share_file.php</code></td><td>POST</td><td><span class="badge badge-red">3FA complet</span></td><td>Génération lien de partage</td></tr>
+        <tr><td><code>/shared.php?token=X</code></td><td>GET</td><td><span class="badge badge-green">Non</span></td><td>Accès public par token</td></tr>
+        <tr><td><code>/forgot_password.php</code></td><td>GET/POST</td><td><span class="badge badge-green">Non</span></td><td>Demande de reset</td></tr>
+        <tr><td><code>/webauthn_register.php</code></td><td>GET/POST</td><td><span class="badge badge-blue">Phase 2b</span></td><td>Enrôlement biométrique</td></tr>
+        <tr><td><code>/webauthn_auth.php</code></td><td>GET/POST</td><td><span class="badge badge-blue">Phase 2b</span></td><td>Vérification biométrique</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 9. Points notables ── -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>Points notables</h2>
+    </div>
+    <table>
+      <thead><tr><th>Point</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>WebAuthn sans dépendance</td>
+          <td>Implémentation complète en PHP natif : décodeur CBOR binaire, parser COSE, vérification de signatures ES256 (ECDSA P-256) et RS256 (RSA) via <code>openssl_verify()</code></td>
+        </tr>
+        <tr>
+          <td>Architecture 3FA robuste</td>
+          <td>Flags de session à 3 niveaux – impossible de sauter une étape d'authentification, même en manipulant l'URL</td>
+        </tr>
+        <tr>
+          <td>Zéro accès direct aux fichiers</td>
+          <td>Tous les documents passent par PHP avec vérification de propriété – <code>.htaccess</code> bloque <code>uploads/</code></td>
+        </tr>
+        <tr>
+          <td>Credentials SMTP externalisés</td>
+          <td>Identifiants dans <code>config/credentials.php</code> non versionné – bonne pratique de sécurité</td>
+        </tr>
+        <tr>
+          <td>Page pédagogique</td>
+          <td><code>phishing_demo.php</code> illustre les risques de phishing pour sensibiliser les utilisateurs</td>
+        </tr>
+        <tr>
+          <td>Timer de session visible</td>
+          <td>Compte à rebours affiché dans l'interface, alerte colorée dans les 5 dernières minutes</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── Pied de page ── -->
+  <div class="footer">
+    Triple Auth – SecureHealth &nbsp;·&nbsp; Rapport généré le 24 mars 2026 &nbsp;·&nbsp; PHP 8.2 · MySQL · WebAuthn
+  </div>
+
+</div>
+</body>
+</html>

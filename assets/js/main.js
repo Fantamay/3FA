@@ -1,0 +1,3 @@
+window.addEventListener('beforeunload', function() {
+    // ...existing code...
+});

@@ -11,13 +11,23 @@
         </testsuite>
     </testsuites>
 
-    <coverage>
+    <source>
         <include>
             <directory>config</directory>
         </include>
+        <exclude>
+            <file>config/credentials.php</file>
+            <file>config/credentials.example.php</file>
+            <file>config/db.php</file>
+            <file>config/mailer.php</file>
+            <file>config/auth_check.php</file>
+        </exclude>
+    </source>
+
+    <coverage>
         <report>
             <html outputDirectory="coverage"/>
-            <text outputFile="php://stdout" showUncoveredFiles="false"/>
+            <text outputFile="php://stdout" showUncoveredFiles="true"/>
         </report>
     </coverage>
 
